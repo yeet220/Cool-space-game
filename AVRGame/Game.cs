@@ -1,15 +1,19 @@
 ﻿using GameLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using System.Security.Cryptography.X509Certificates;
 
 namespace AVRGame
 {
     public class Game : GameLib.AVRGame
     {
+        float x = 0;
+
         RasterizerState rasterizerState = new RasterizerState() { MultiSampleAntiAlias = true };
         public Game()
         {
-            this.ScreenWidth = 800;
+            this.ScreenWidth = 900;
             this.ScreenHeight = 600;
         }
 
@@ -45,6 +49,14 @@ namespace AVRGame
         /// <param name="gameTime"></param>
         protected override void __Update(GameTime gameTime)
         {
+            // Poll for current keyboard state
+            KeyboardState state = Keyboard.GetState();
+
+            // Move our sprite based on arrow keys being pressed:
+            if (state.IsKeyDown(Keys.Right))
+                x += 10;
+            if (state.IsKeyDown(Keys.Left))
+                x -= 10;
 
         }
 
@@ -63,6 +75,8 @@ namespace AVRGame
             spriteBatch.Begin(rasterizerState: this.rasterizerState, transformMatrix: Camera.TransformMatrix);
 
             //Place your world drawing logic here.
+            spriteBatch.DrawCircle(new Vector2(x, 0), 100, Color.Black);
+            
 
             //End the spritebatch
             spriteBatch.End();
@@ -81,5 +95,15 @@ namespace AVRGame
 
             spriteBatch.End();
         }
+
+        //Class that makes circles 
+        class circle
+        {
+            public float x;
+            public float y;
+            public Vector2 position;
+            public Color color;
+        }
+
     }
 }
