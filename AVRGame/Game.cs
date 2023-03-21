@@ -279,6 +279,8 @@ namespace AVRGame
             displayScore = (int)Math.Round(score);
             // Call the base Update method base.Update(gameTime);
 
+
+            //calcultes if plane is in NoNozone or not 
             for (int i = 0; i < Meteors.Count; i++)
             {
                 distance_x = Planes[0].position.X - Meteors[i].position.X;
@@ -288,8 +290,6 @@ namespace AVRGame
                 if (NoNozone > distance) 
                 {
                     Planes[0].speed = 0;
-                    x = 0;
-                    y = 0;
                     Meteor_x = 0;
                     Meteor_y = 0;
                     ScorePerSecond = 0;
