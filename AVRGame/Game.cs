@@ -281,8 +281,8 @@ namespace AVRGame
 
             for (int i = 0; i < Meteors.Count; i++)
             {
-                distance_x = (float)Planes[0].position.X - (float)Meteors[i].position.X;
-                distance_y = (float)Planes[0].position.Y - (float)Meteors[i].position.Y;
+                distance_x = Planes[0].position.X - Meteors[i].position.X;
+                distance_y = Planes[0].position.Y - Meteors[i].position.Y;
                 distance = (int)(Math.Sqrt(((int)(distance_x) * distance_x) + ((int)(distance_y) * distance_y)));
                 NoNozone = (int)Planes[0].radius+(int)Meteors[i].radius;
                 if (NoNozone > distance) 
