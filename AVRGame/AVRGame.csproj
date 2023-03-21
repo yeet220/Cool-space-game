@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<OutputType>WinExe</OutputType>
+		<OutputType>Exe</OutputType>
 		<TargetFramework>net6.0</TargetFramework>
 		<RollForward>Major</RollForward>
 		<PublishReadyToRun>false</PublishReadyToRun>
@@ -33,7 +33,7 @@
 	</Target>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<ItemGroup>
-			<ContentFiles Include="$(SolutionDir)Dll\Content\*.*"/>
+			<ContentFiles Include="$(SolutionDir)Dll\Content\*.*" />
 		</ItemGroup>
 		<Copy SourceFiles="@(ContentFiles)" DestinationFolder="$(OutDir)Content"></Copy>
 	</Target>
