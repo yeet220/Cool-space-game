@@ -13,6 +13,18 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin 999-social-credit-siren.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:999-social-credit-siren.mp3
+
+#begin Band_HeyYou_Piano_worldzd.wav
+/importer:WavImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Band_HeyYou_Piano_worldzd.wav
+
 #begin Epic font.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
@@ -25,7 +37,7 @@
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
-/build:File.spritefont
+/build:File.spritefont;Bigger_Epic_font.spritefont
 
 #begin main_character.png
 /importer:TextureImporter

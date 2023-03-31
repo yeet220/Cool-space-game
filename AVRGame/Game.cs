@@ -1,7 +1,9 @@
 ﻿using GameLib;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -105,13 +107,16 @@ namespace AVRGame
         float distance_y;
         float distance;
         float NoNozone;
-        
+        float death;
 
 
 
+       
         SpriteFont Font;
         Texture2D Background;
         Texture2D plane;
+        Song background_music;
+        SoundEffect Death_Sound;
 
 
 
@@ -160,9 +165,14 @@ namespace AVRGame
         {
             //spriteBatch = new SpriteBatch(GraphicsDevice);
             //[] ;
+           
             Font = Content.Load<SpriteFont>("Epic font");
             Background = Content.Load<Texture2D>("Space");
             plane = Content.Load<Texture2D>("main_character");
+            background_music = Content.Load<Song>("Band_HeyYou_Piano_worldzd");
+            Death_Sound= Content.Load<SoundEffect>("999-social-credit-siren");
+            MediaPlayer.Play(background_music);
+            MediaPlayer.IsRepeating = true;
         }
 
         /// <summary>
@@ -180,9 +190,20 @@ namespace AVRGame
         /// <param name="gameTime"></param>
         protected override void __Update(GameTime gameTime)
         {
+            // Music
+            if (MediaPlayer.State == MediaState.Stopped)
+                MediaPlayer.Play(background_music);
+            else if (MediaPlayer.State == MediaState.Paused)
+                MediaPlayer.Resume();
+            if (MediaPlayer.Volume < 1)
+                MediaPlayer.Volume += .0000001f;
+            
+            
+
+
             // Movement modifier for meteors
-            Meteor_x *= 1.00001f;
-            Meteor_y *= 1.0001f;
+            Meteor_x *= 1.0001f;
+            Meteor_y *= 1.001f;
 
             // Poll for current keyboard state
             KeyboardState state = Keyboard.GetState();
@@ -293,6 +314,7 @@ namespace AVRGame
                     Meteor_x = 0;
                     Meteor_y = 0;
                     ScorePerSecond = 0;
+                    death = 1;
                 };
             }
             
@@ -318,11 +340,6 @@ namespace AVRGame
 
             //draws space background
             spriteBatch.Draw(Background, new Rectangle(-900, -500, ScreenWidth, ScreenHeight), Color.White);
-
-            //draws score on screen 
-            spriteBatch.DrawString(Font, "Score: " + displayScore.ToString(), new Vector2(-800, -450), Color.White);
-
-
             //Place your world drawing logic here.
             for (int i = 0; i < Planes.Count; i++)
             {
@@ -336,6 +353,22 @@ namespace AVRGame
             }
 
             
+
+           
+            if (death == 0)
+            {
+                //draws score on screen 
+                spriteBatch.DrawString(Font, "Score: " + displayScore.ToString(), new Vector2(-800, -450), Color.White);
+            }
+
+           
+            if (death == 1)
+            {
+                //draws score on screen 
+                spriteBatch.Draw(Background, new Rectangle(-900, -500, ScreenWidth, ScreenHeight), Color.White);
+                spriteBatch.DrawString(Font, "Score: " + displayScore.ToString(), new Vector2(-200, 100), Color.White, 0, new Vector2(0, 0), 2,SpriteEffects.None, 0 );
+
+            }
 
 
 
