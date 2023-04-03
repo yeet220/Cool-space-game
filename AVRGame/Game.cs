@@ -108,6 +108,7 @@ namespace AVRGame
         float distance;
         float NoNozone;
         float death;
+        float health = 100;
 
         //SoundEffectInstance soundEffect = new SoundEffectInstance.Content.Load<SoundEffect>("999-social-credit-siren");
 
@@ -129,7 +130,7 @@ namespace AVRGame
 
             Random xrnd = new Random();
 
-            float[] spawn_x = {900, 800, 700, 600, 500, 400, 300, 200, 100, 0, -100, -200, -300, -400, -500, -600, -700, -800, -900 };
+            float[] spawn_x = {960, 900, 800, 700, 600, 500, 400, 300, 200, 100, 0, -100, -200, -300, -400, -500, -600, -700, -800, -900, -960 };
             Random  yrnd = new Random();
             float[] spawn_y = { -500, -400, -300 };
             float[] speedMeteor_x = {-3, -2, -1, -0.9f, -0.5f, 0, 0.5f, 0.9f, 1, 2, 3};
@@ -314,12 +315,18 @@ namespace AVRGame
                 NoNozone = (int)Planes[0].radius+(int)Meteors[i].radius;
                 if (NoNozone > distance) 
                 {
+                    health -= 25;
+                    Meteors[i].position.Y -= 1080  ;
+                };
+
+                if (health == 0)
+                {
                     Planes[0].speed = 0;
                     Meteor_x = 0;
                     Meteor_y = 0;
                     ScorePerSecond = 0;
                     death = 1;
-                };
+                }
             }
             
            
@@ -363,6 +370,8 @@ namespace AVRGame
             {
                 //draws score on screen 
                 spriteBatch.DrawString(Font, "Score: " + displayScore.ToString(), new Vector2(-860, -440), Color.White);
+                // draws health on screen
+                spriteBatch.DrawString(Font, "Health: " + health.ToString() + "%", new Vector2(-860, -340), Color.Green);
             }
             else if (death == 1)
             {
@@ -433,7 +442,7 @@ namespace AVRGame
 
                 if (position.Y > 640)
                 {
-                    position.Y = -690;
+                    position.Y = -790;
                 }
 
             }
