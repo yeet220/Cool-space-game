@@ -109,19 +109,19 @@ namespace AVRGame
         float NoNozone;
         float death;
 
-
+        //SoundEffectInstance soundEffect = new SoundEffectInstance.Content.Load<SoundEffect>("999-social-credit-siren");
 
        
         SpriteFont Font;
         Texture2D Background;
         Texture2D plane;
         Song background_music;
-        SoundEffect Death_Sound;
 
 
 
         List<Plane> Planes = new List<Plane>();
         List<Meteor> Meteors = new List<Meteor>();
+        List<SoundEffect> soundEffects = new List<SoundEffect>();
 
         RasterizerState rasterizerState = new RasterizerState() { MultiSampleAntiAlias = true };
         public Game()
@@ -136,15 +136,13 @@ namespace AVRGame
             float[] speedMeteor_y = { 0.5f, 0.9f, 1, 2, 3, 4, 5, 6 };
             float[] size = { 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100 };
 
-
-
             Planes.Add(new Plane(new Vector2(0, 200), 20, Color.Yellow, 0.1f, 0));
            
             for(int i=0; i<7; i++) {
                 Meteors.Add(new Meteor(new Vector2(spawn_x[xrnd.Next(spawn_x.Length)], spawn_y[yrnd.Next(spawn_y.Length)]), size[xrnd.Next(size.Length)], Color.Red, speedMeteor_x[xrnd.Next(speedMeteor_x.Length)], speedMeteor_y[xrnd.Next(speedMeteor_y.Length)]));
             }
-            this.ScreenWidth = 1800;
-            this.ScreenHeight = 1000;
+            this.ScreenWidth = 1920;
+            this.ScreenHeight = 1080;
         }
        
         /// <summary>
@@ -153,7 +151,12 @@ namespace AVRGame
         /// </summary>
         protected override void __Initialize()
         {
+            graphics.PreferredBackBufferHeight = this.ScreenHeight;
+            graphics.PreferredBackBufferWidth = this.ScreenWidth;
+            graphics.IsFullScreen = true;
+            graphics.ApplyChanges();
 
+           
 
         }
 
@@ -170,9 +173,10 @@ namespace AVRGame
             Background = Content.Load<Texture2D>("Space");
             plane = Content.Load<Texture2D>("main_character");
             background_music = Content.Load<Song>("Band_HeyYou_Piano_worldzd");
-            Death_Sound= Content.Load<SoundEffect>("999-social-credit-siren");
+            soundEffects.Add(Content.Load<SoundEffect>("999-social-credit-siren"));
             MediaPlayer.Play(background_music);
             MediaPlayer.IsRepeating = true;
+            
         }
 
         /// <summary>
@@ -339,7 +343,7 @@ namespace AVRGame
             spriteBatch.Begin(rasterizerState: this.rasterizerState, transformMatrix: Camera.TransformMatrix);
 
             //draws space background
-            spriteBatch.Draw(Background, new Rectangle(-900, -500, ScreenWidth, ScreenHeight), Color.White);
+            spriteBatch.Draw(Background, new Rectangle(-960, -540, ScreenWidth, ScreenHeight), Color.White);
             //Place your world drawing logic here.
             for (int i = 0; i < Planes.Count; i++)
             {
@@ -358,18 +362,17 @@ namespace AVRGame
             if (death == 0)
             {
                 //draws score on screen 
-                spriteBatch.DrawString(Font, "Score: " + displayScore.ToString(), new Vector2(-800, -450), Color.White);
+                spriteBatch.DrawString(Font, "Score: " + displayScore.ToString(), new Vector2(-860, -440), Color.White);
+            }
+            else if (death == 1)
+            {
+                //draws score on screen 
+                spriteBatch.Draw(Background, new Rectangle(-960, -540, ScreenWidth, ScreenHeight), Color.White);
+                spriteBatch.DrawString(Font, "Score: " + displayScore.ToString(), new Vector2(-214, 108), Color.White, 0, new Vector2(0, 0), 2,SpriteEffects.None, 0 );
+                soundEffects[0].CreateInstance().Play();
             }
 
            
-            if (death == 1)
-            {
-                //draws score on screen 
-                spriteBatch.Draw(Background, new Rectangle(-900, -500, ScreenWidth, ScreenHeight), Color.White);
-                spriteBatch.DrawString(Font, "Score: " + displayScore.ToString(), new Vector2(-200, 100), Color.White, 0, new Vector2(0, 0), 2,SpriteEffects.None, 0 );
-
-            }
-
 
 
             //End the spritebatch
@@ -416,21 +419,21 @@ namespace AVRGame
                 position.Y += Meteor_y*speed_y;
 
 
-                if (position.X > 1000)
+                if (position.X > 1060)
                 {
-                    position.X = -900;
-                    position.Y = -650;
+                    position.X = -960;
+                    position.Y = -690;
                 }
 
-                if (position.X < -1000)
+                if (position.X < -1060)
                 {
-                    position.X = 900;
-                    position.Y = -650;
+                    position.X = 960;
+                    position.Y = -690;
                 }
 
-                if (position.Y > 600)
+                if (position.Y > 640)
                 {
-                    position.Y = -650;
+                    position.Y = -690;
                 }
 
             }
@@ -465,24 +468,24 @@ namespace AVRGame
                 position.Y += y * speed;
 
 
-                if (position.X > 900)
+                if (position.X > 960)
                 {
-                    position.X = 900;
+                    position.X = 960;
                 }
 
-                if (position.X < -900)
+                if (position.X < -960)
                 {
-                    position.X = -900;
+                    position.X = -960;
                 }
 
-                if (position.Y > 500)
+                if (position.Y > 540)
                 {
-                    position.Y = 500;
+                    position.Y = 540;
                 }
 
-                if (position.Y < -500)
+                if (position.Y < -540)
                 {
-                    position.Y = -500;
+                    position.Y = -540;
                 }
             }
 
