@@ -95,53 +95,65 @@ namespace AVRGame
     public class Game : GameLib.AVRGame
     {
         //start values 
-        float x;
-        float y;
-        float Meteor_x = 1;
-        float Meteor_y = 1;
-        float score;
+        float x,y;
+        float Meteor_x = 1, Meteor_y = 1;
+        float score, ScorePerSecond = 0.05f, elapsedTime;
         int displayScore;
-        float ScorePerSecond = 0.05f;
-        float elapsedTime;
-        float distance_x;
-        float distance_y;
-        float distance;
-        float NoNozone;
+        float distance_x, distance_y, distance, NoNozone;
         float death;
-        float health = 100;
+        float health = 100, shield;
+        float Powerup_speed = 1;
 
-        //SoundEffectInstance soundEffect = new SoundEffectInstance.Content.Load<SoundEffect>("999-social-credit-siren");
+        //this allows me to use Psuedo randomness everywhere for everything
+        Random xrnd = new Random();
 
-       
+        float[] spawn_x = { 960, 900, 800, 700, 600, 500, 400, 300, 200, 100, 0, -100, -200, -300, -400, -500, -600, -700, -800, -900, -960 };
+        float[] spawn_y = { -500, -400, -300 };
+        float[] speedMeteor_x = { -3, -2, -1, -0.9f, -0.5f, 0, 0.5f, 0.9f, 1, 2, 3 };
+        float[] speedMeteor_y = { 0.5f, 0.9f, 1, 2, 3, 4, 5, 6 };
+        float[] size = { 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100 };
+        float[] growthspeed = {0};
+        float[] spawn_num = { 0, 1, 2, 3, 4, 5, 6 };
+        float[] spawn_Power_y = { -700, -800, -900, -1000, -1100, -1200, -1300, -1600, -1800, -1900, -2000 };
+        float[] spawn_Power_x = { 700, 600, 500, 400, 300, 100, 0, -100, -300, -400, -500, -600, -700 };
+        float[] type = { 0, 1 };
+
+
         SpriteFont Font;
         Texture2D Background;
         Texture2D plane;
+        Texture2D meteor;
+        Texture2D Health_pic;
+        Texture2D Shield_pic;
         Song background_music;
 
 
 
         List<Plane> Planes = new List<Plane>();
         List<Meteor> Meteors = new List<Meteor>();
+        List<Powerup> Powerups = new List<Powerup>();
         List<SoundEffect> soundEffects = new List<SoundEffect>();
 
         RasterizerState rasterizerState = new RasterizerState() { MultiSampleAntiAlias = true };
         public Game()
         {
-
-            Random xrnd = new Random();
-
-            float[] spawn_x = {960, 900, 800, 700, 600, 500, 400, 300, 200, 100, 0, -100, -200, -300, -400, -500, -600, -700, -800, -900, -960 };
-            Random  yrnd = new Random();
-            float[] spawn_y = { -500, -400, -300 };
-            float[] speedMeteor_x = {-3, -2, -1, -0.9f, -0.5f, 0, 0.5f, 0.9f, 1, 2, 3};
-            float[] speedMeteor_y = { 0.5f, 0.9f, 1, 2, 3, 4, 5, 6 };
-            float[] size = { 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100 };
-
+           
+            //player 
             Planes.Add(new Plane(new Vector2(0, 200), 20, Color.Yellow, 0.1f, 0));
            
-            for(int i=0; i<7; i++) {
-                Meteors.Add(new Meteor(new Vector2(spawn_x[xrnd.Next(spawn_x.Length)], spawn_y[yrnd.Next(spawn_y.Length)]), size[xrnd.Next(size.Length)], Color.Red, speedMeteor_x[xrnd.Next(speedMeteor_x.Length)], speedMeteor_y[xrnd.Next(speedMeteor_y.Length)]));
+            //meteor
+            for(int i=0; i<7; i++) 
+            {
+                Meteors.Add(new Meteor(new Vector2(spawn_x[xrnd.Next(spawn_x.Length)], spawn_y[xrnd.Next(spawn_y.Length)]), size[xrnd.Next(size.Length)], Color.Red, speedMeteor_x[xrnd.Next(speedMeteor_x.Length)], speedMeteor_y[xrnd.Next(speedMeteor_y.Length)], growthspeed[xrnd.Next(growthspeed.Length)]));
             }
+
+            //power ups
+            for(int i=0; i<spawn_num[xrnd.Next(spawn_num.Length)]; i++)
+            {
+                Powerups.Add(new Powerup(new Vector2(spawn_Power_x[xrnd.Next(spawn_Power_x.Length)], spawn_Power_y[xrnd.Next(spawn_Power_y.Length)]), 20, 3, type[xrnd.Next(type.Length)])); 
+            }
+
+            //screen size
             this.ScreenWidth = 1920;
             this.ScreenHeight = 1080;
         }
@@ -156,9 +168,6 @@ namespace AVRGame
             graphics.PreferredBackBufferWidth = this.ScreenWidth;
             graphics.IsFullScreen = true;
             graphics.ApplyChanges();
-
-           
-
         }
 
         /// <summary>
@@ -173,11 +182,14 @@ namespace AVRGame
             Font = Content.Load<SpriteFont>("Epic font");
             Background = Content.Load<Texture2D>("Space");
             plane = Content.Load<Texture2D>("main_character");
+            meteor = Content.Load<Texture2D>("Deathstar");
+            Health_pic = Content.Load<Texture2D>("Fortnite medkit");
+            Shield_pic = Content.Load<Texture2D>("Fortnite");
             background_music = Content.Load<Song>("Band_HeyYou_Piano_worldzd");
             soundEffects.Add(Content.Load<SoundEffect>("999-social-credit-siren"));
+
             MediaPlayer.Play(background_music);
-            MediaPlayer.IsRepeating = true;
-            
+            MediaPlayer.IsRepeating = true;            
         }
 
         /// <summary>
@@ -202,25 +214,27 @@ namespace AVRGame
                 MediaPlayer.Resume();
             if (MediaPlayer.Volume < 1)
                 MediaPlayer.Volume += .0000001f;
-            
-            
-
-
+      
             // Movement modifier for meteors
             Meteor_x *= 1.0001f;
             Meteor_y *= 1.001f;
 
+
+
             // Poll for current keyboard state
             KeyboardState state = Keyboard.GetState();
 
-            //enables closing game by prssing a button
+            // Get the current state of Controller1
+            GamePadState controllerstate = GamePad.GetState(PlayerIndex.One);
+
+            // Enables closing game by pressing a button
             if (state.IsKeyDown(Keys.Escape))
             {
                 this.Exit();
             }
 
             // Move our sprite based on arrow keys being pressed:
-            if (state.IsKeyDown(Keys.Right))
+            if (state.IsKeyDown(Keys.Right) || controllerstate.ThumbSticks.Left.X > 0.5f)
             {
                 if (x < -10)
                 {
@@ -230,7 +244,7 @@ namespace AVRGame
             }
            
                 
-            if (state.IsKeyDown(Keys.Left))
+            if (state.IsKeyDown(Keys.Left) || controllerstate.ThumbSticks.Left.X < -0.5f)
             {
                 if (x > 10)
                 {
@@ -240,7 +254,7 @@ namespace AVRGame
             }
             
 
-            if (state.IsKeyDown(Keys.Down))
+            if (state.IsKeyDown(Keys.Down) || controllerstate.ThumbSticks.Left.Y < -0.5f)
             {
                 if (y < -10)
                 {
@@ -251,7 +265,7 @@ namespace AVRGame
             
 
 
-            if (state.IsKeyDown(Keys.Up))
+            if (state.IsKeyDown(Keys.Up) || controllerstate.ThumbSticks.Left.Y > 0.5f)
             {
                 if (y > 10)
                 {
@@ -260,7 +274,8 @@ namespace AVRGame
                 y -= 10;
             }
 
-            if (state.IsKeyUp(Keys.Up) && state.IsKeyUp(Keys.Down) && state.IsKeyUp(Keys.Right) && state.IsKeyUp(Keys.Left))
+            // cool space effect on movement
+            if ((state.IsKeyUp(Keys.Up) && state.IsKeyUp(Keys.Down) && state.IsKeyUp(Keys.Right) && state.IsKeyUp(Keys.Left)) || (controllerstate.ThumbSticks.Left.X < 0.5f && controllerstate.ThumbSticks.Left.X > -0.5f  && controllerstate.ThumbSticks.Left.Y < 0.5f && controllerstate.ThumbSticks.Left.Y < -0.5f))
             {
                 x *= 0.98f ;
                 y *= 0.98f ;
@@ -270,16 +285,18 @@ namespace AVRGame
             //**unused** changes size of class plane 
             if (state.IsKeyDown(Keys.W))
             {
-                for (int i = 0; i < Planes.Count; i++)
+                for (int i = 0; i < Meteors.Count; i++ )
                 {
-                    Planes[i].Grow(1);
+                    Planes[0].Grow(1);
+                    Meteors[i].Grow(1);
                 }
             }
-            if (state.IsKeyDown(Keys.S))
+            else if (state.IsKeyDown(Keys.S))
             {
-                for (int i = 0; i < Planes.Count; i++)
+                for (int i = 0; i < Meteors.Count; i++)
                 {
-                    Planes[i].Grow(-1);
+                    Planes[0].Grow(-1);
+                    Meteors[i].Grow(-1);
                 }
             }
 
@@ -290,10 +307,18 @@ namespace AVRGame
                 Planes[i].Update(x, y);
             }
 
+
             for (int i = 0; i < Meteors.Count; i++)
             {
                 Meteors[i].Update(Meteor_x, Meteor_y);
             }
+
+            for (int i = 0; i < Powerups.Count; i++)
+            {
+                Powerups[i].Update(Powerup_speed);
+            }
+
+            
 
 
 
@@ -305,28 +330,61 @@ namespace AVRGame
             displayScore = (int)Math.Round(score);
             // Call the base Update method base.Update(gameTime);
 
+            //calculates if plane is in NoNozone of powerup
+            for (int i = 0; i < Powerups.Count;i++)
+            {
+                distance_x = Planes[0].position.X - Powerups[i].position.X;
+                distance_y = Planes[0].position.Y - Powerups[i].position.Y;
+                distance = (int)(Math.Sqrt(((int)(distance_x) * distance_x) + ((int)(distance_y) * distance_y)));
+                NoNozone = (int)Planes[0].radius + (int)Powerups[i].radius;
+                if (NoNozone > distance)
+                {
+                    if (Powerups[i].type == 0 && health<100)
+                    {
+                        health += 25;
+                    }
+                    else if (Powerups[i].type == 1 && shield<150)
+                    {
+                        shield += 25;
+                    }
+                    Powerups[i].position.Y = spawn_Power_y[xrnd.Next(spawn_Power_y.Length)];
+                }
 
-            //calcultes if plane is in NoNozone or not 
+            }
+
+            //calcultes if plane is in NoNozone of meteor
             for (int i = 0; i < Meteors.Count; i++)
             {
                 distance_x = Planes[0].position.X - Meteors[i].position.X;
                 distance_y = Planes[0].position.Y - Meteors[i].position.Y;
                 distance = (int)(Math.Sqrt(((int)(distance_x) * distance_x) + ((int)(distance_y) * distance_y)));
                 NoNozone = (int)Planes[0].radius+(int)Meteors[i].radius;
-                if (NoNozone > distance) 
+                if (NoNozone > distance)
                 {
-                    health -= 25;
-                    Meteors[i].position.Y -= 1080  ;
-                };
+                    if (shield>0) 
+                    { 
+                        shield -= 25;
+                    }
+                     else 
+                    { 
+                        health -= 25; 
+                    }
+                    Meteors[i].position.Y -= 1080;
+                    Meteors[i].position.X = spawn_x[xrnd.Next(spawn_x.Length)];
+                    Meteors[i].radius = size[xrnd.Next(size.Length)];
+                    Meteors[i].speed_x = speedMeteor_x[xrnd.Next(speedMeteor_x.Length)];
+                    Meteors[i].speed_y = speedMeteor_y[xrnd.Next(speedMeteor_y.Length)];
+                }
 
                 if (health == 0)
                 {
-                    Planes[0].speed = 0;
-                    Meteor_x = 0;
-                    Meteor_y = 0;
-                    ScorePerSecond = 0;
-                    death = 1;
+                   if (death != 1)
+                   {
+                       On_Death();
+                   }
                 }
+
+                
             }
             
            
@@ -356,12 +414,26 @@ namespace AVRGame
             {
                 spriteBatch.Draw(plane, new Rectangle((int)(Planes[i].position.X - ((Planes[i].radius * 5) / 2)), (int)(Planes[i].position.Y - ((Planes[i].radius*5)/2)), (int)Planes[i].radius * 5, (int)Planes[i].radius * 5), Color.White);
             }
-
-
-            for (int i= 0; i < Meteors.Count; i++)
+            
+            for (int i = 0; i < Powerups.Count; i++)
             {
-                spriteBatch.DrawCircle(Meteors[i].position, Meteors[i].radius, Meteors[i].color);
+                if (Powerups[i].type == 0)
+                {
+                    spriteBatch.Draw(Health_pic, new Rectangle((int)(Powerups[i].position.X - ((Powerups[i].radius) * 4 / 2)), (int)(Powerups[i].position.Y - ((Powerups[i].radius) * 4 / 2)), (int)Powerups[i].radius * 4, (int)Powerups[i].radius * 4), Color.White);
+                }
+                else if (Powerups[i].type == 1)
+                { 
+                    spriteBatch.Draw(Shield_pic, new Rectangle((int)(Powerups[i].position.X - ((Powerups[i].radius)*4 / 2)), (int)(Powerups[i].position.Y - ((Powerups[i].radius)*4 / 2)), (int)Powerups[i].radius*4, (int)Powerups[i].radius*4), Color.White);
+                }
+
             }
+
+            for (int i = 0; i < Meteors.Count; i++)
+            {
+                spriteBatch.Draw(meteor, new Rectangle((int)(Meteors[i].position.X - ((Meteors[i].radius))), (int)(Meteors[i].position.Y - ((Meteors[i].radius))), (int)Meteors[i].radius * 2, (int)Meteors[i].radius * 2), Color.White);
+            }
+
+            
 
             
 
@@ -372,21 +444,45 @@ namespace AVRGame
                 spriteBatch.DrawString(Font, "Score: " + displayScore.ToString(), new Vector2(-860, -440), Color.White);
                 // draws health on screen
                 spriteBatch.DrawString(Font, "Health: " + health.ToString() + "%", new Vector2(-860, -340), Color.Green);
+                // draws shield on screen
+                spriteBatch.DrawString(Font, "shield: " + shield.ToString() + "%", new Vector2(-860, -240), Color.Blue);
             }
             else if (death == 1)
             {
                 //draws score on screen 
                 spriteBatch.Draw(Background, new Rectangle(-960, -540, ScreenWidth, ScreenHeight), Color.White);
-                spriteBatch.DrawString(Font, "Score: " + displayScore.ToString(), new Vector2(-214, 108), Color.White, 0, new Vector2(0, 0), 2,SpriteEffects.None, 0 );
-                soundEffects[0].CreateInstance().Play();
+                spriteBatch.DrawString(Font, "Score: " + displayScore.ToString(), new Vector2(-214, 108), Color.White, 0, new Vector2(0, 0), 2, SpriteEffects.None, 0);
             }
-
+             
+            
            
 
 
             //End the spritebatch
             spriteBatch.End();
         }
+        
+        public void On_Death() 
+        {
+            
+            soundEffects[0].CreateInstance().Play();
+
+            Planes[0].speed = 0;
+            Meteor_x = 0;
+            Meteor_y = 0;
+            for (int i = 0; i < Powerups.Count; i++)
+            {
+                Powerups[i].speed = 0;
+            }
+            ScorePerSecond = 0;
+            death = 1;
+
+
+
+        }
+
+
+
 
         /// <summary>
         /// This function is for drawing on the UI elements
@@ -411,14 +507,16 @@ namespace AVRGame
             public Color color;
             public float speed_x;
             public float speed_y;
+            public float growthspeed;
 
-            public Meteor(Vector2 position, float radius, Color color, float speed_x, float speed_y)
+            public Meteor(Vector2 position, float radius, Color color, float speed_x, float speed_y, float growthspeed)
             {
                 this.position = position;
                 this.radius = radius;
                 this.color = color;
                 this.speed_x = speed_x;
                 this.speed_y = speed_y;
+                this.growthspeed = growthspeed;
             }
 
             public void Update(float Meteor_x, float Meteor_y)
@@ -443,15 +541,62 @@ namespace AVRGame
                 if (position.Y > 640)
                 {
                     position.Y = -790;
+                }             
+            }
+            
+            public void Grow(float growth)
+            {
+                if (radius < 1001 && radius > 9)
+                {
+                    radius += growth * growthspeed;
+                }
+                else if (radius > 1000)
+                {
+                    radius = 1000;
+                    growth = 0;
                 }
 
+                else if (radius < 10)
+                {
+                    radius = 10;
+                    growth = 0;
+                }
+            }
+        }
+
+        public class Powerup
+        {
+            public Vector2 position;
+            public float radius;
+            public float speed;
+            public float type;
+
+            public Powerup(Vector2 position, float radius, float speed, float type)
+            {
+                this.position = position;
+                this.radius = radius;
+                this.speed = speed;
+                this.type = type;
             }
 
+            public void Update(float Powerup_speed)  
+            {
+                position.Y += Powerup_speed * speed;
+
+                if (position.Y > 640)
+                {
+                    position.Y = -1500;
+                }
+
+
             }
+        }
+
+
 
         //Class that makes Planes 
         public class Plane
-        {
+            {
             public Vector2 position;
             public float radius;
             public Color color;
@@ -499,10 +644,25 @@ namespace AVRGame
             }
 
             
-            //unused growth of plane
+            //growth of planews
             public void Grow(float growth)
             {
-                radius += growth * growthspeed;
+                if (radius < 41 && radius > 9)
+                {
+                    radius += growth * growthspeed;
+                }
+
+                else if (radius > 40)
+                {
+                    radius = 40;
+                    growth = 0;
+                }
+
+                else if (radius < 9)
+                {
+                    radius = 10;
+                    growth = 0;
+                }
             }
 
         }
