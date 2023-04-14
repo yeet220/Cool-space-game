@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using static System.Formats.Asn1.AsnWriter;
@@ -118,7 +119,7 @@ namespace AVRGame
         float[] spawn_num = { 0, 1, 2, 3, 4, 5, 6 };
         float[] spawn_Power_y = { -700, -800, -900, -1000, -1100, -1200, -1300, -1600, -1800, -1900, -2000 };
         float[] spawn_Power_x = { 700, 600, 500, 400, 300, 100, 0, -100, -300, -400, -500, -600, -700 };
-        float[] type = { 0, 1 };
+        float[] type = { 0, 1, 2};
 
 
         SpriteFont Font;
@@ -127,6 +128,7 @@ namespace AVRGame
         Texture2D meteor;
         Texture2D Health_pic;
         Texture2D Shield_pic;
+        Texture2D extra_score;
         Song background_music;
 
 
@@ -187,6 +189,7 @@ namespace AVRGame
             meteor = Content.Load<Texture2D>("Deathstar");
             Health_pic = Content.Load<Texture2D>("Fortnite medkit");
             Shield_pic = Content.Load<Texture2D>("Fortnite");
+            extra_score = Content.Load<Texture2D>("100-satisfaction-935383796");
             background_music = Content.Load<Song>("Band_HeyYou_Piano_worldzd");
             soundEffects.Add(Content.Load<SoundEffect>("999-social-credit-siren"));
 
@@ -365,6 +368,10 @@ namespace AVRGame
                     {
                         shield += 25;
                     }
+                    else if (Powerups[i].type == 2) 
+                    {
+                        score += 100;
+                    }
                     Powerups[i].position.Y = spawn_Power_y[xrnd.Next(spawn_Power_y.Length)];
                 }
 
@@ -441,7 +448,11 @@ namespace AVRGame
                 }
                 else if (Powerups[i].type == 1)
                 { 
-                    spriteBatch.Draw(Shield_pic, new Rectangle((int)(Powerups[i].position.X - ((Powerups[i].radius)*4 / 2)), (int)(Powerups[i].position.Y - ((Powerups[i].radius)*4 / 2)), (int)Powerups[i].radius*4, (int)Powerups[i].radius*4), Color.White);
+                    spriteBatch.Draw(Shield_pic, new Rectangle((int)(Powerups[i].position.X - ((Powerups[i].radius)* 4 / 2)), (int)(Powerups[i].position.Y - ((Powerups[i].radius)*4 / 2)), (int)Powerups[i].radius*4, (int)Powerups[i].radius*4), Color.White);
+                }
+                else if (Powerups[i].type == 2)
+                {
+                    spriteBatch.Draw(extra_score, new Rectangle((int)(Powerups[i].position.X - ((Powerups[i].radius) * 3 / 2)), (int)(Powerups[i].position.Y - ((Powerups[i].radius) * 3 / 2)), (int)Powerups[i].radius * 4, (int)Powerups[i].radius * 4), Color.White);
                 }
 
             }
