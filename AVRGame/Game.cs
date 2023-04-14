@@ -97,13 +97,15 @@ namespace AVRGame
         //start values 
         float x,y;
         float Meteor_x = 1, Meteor_y = 1;
+        float save_Meteor_x, save_Meteor_y;
         float score, ScorePerSecond = 0.05f, elapsedTime;
         int displayScore;
         float distance_x, distance_y, distance, NoNozone;
         float death;
+        bool pause;
         float health = 100, shield;
         float Powerup_speed = 1;
-
+        bool IsHeld = false;
         //this allows me to use Psuedo randomness everywhere for everything
         Random xrnd = new Random();
 
@@ -191,7 +193,7 @@ namespace AVRGame
             MediaPlayer.Play(background_music);
             MediaPlayer.IsRepeating = true;            
         }
-
+         
         /// <summary>
         /// Sometimes you need to unload content.
         /// This is called once if you exit the game
@@ -219,6 +221,11 @@ namespace AVRGame
             Meteor_x *= 1.0001f;
             Meteor_y *= 1.001f;
 
+            if (pause == false)
+            {
+                save_Meteor_x = Meteor_x;
+                save_Meteor_y = Meteor_y;
+            }
 
 
             // Poll for current keyboard state
@@ -228,11 +235,22 @@ namespace AVRGame
             GamePadState controllerstate = GamePad.GetState(PlayerIndex.One);
 
             // Enables closing game by pressing a button
-            if (state.IsKeyDown(Keys.Escape))
+            if (state.IsKeyDown(Keys.Escape) || controllerstate.IsButtonDown(Buttons.X))
             {
                 this.Exit();
             }
 
+            if(state.IsKeyDown(Keys.Space) && IsHeld == false)
+            {
+                IsHeld = true;
+                pause =! pause;
+                Pause();
+            }
+
+            if(state.IsKeyDown(Keys.Space) == false && IsHeld == true){
+                IsHeld = false;
+            }
+            
             // Move our sprite based on arrow keys being pressed:
             if (state.IsKeyDown(Keys.Right) || controllerstate.ThumbSticks.Left.X > 0.5f)
             {
@@ -301,7 +319,7 @@ namespace AVRGame
             }
 
            
-            //updates the location of classes
+            //updates the location of objects
             for (int i = 0; i < Planes.Count; i++)
             {
                 Planes[i].Update(x, y);
@@ -328,7 +346,7 @@ namespace AVRGame
             // Increase the score based on time elapsed
             score += ScorePerSecond * elapsedTime;
             displayScore = (int)Math.Round(score);
-            // Call the base Update method base.Update(gameTime);
+            
 
             //calculates if plane is in NoNozone of powerup
             for (int i = 0; i < Powerups.Count;i++)
@@ -481,6 +499,31 @@ namespace AVRGame
 
         }
 
+        public void Pause()
+        {
+            if (pause == true)
+            {
+                Planes[0].speed = 0;
+                Meteor_x = 0;
+                Meteor_y = 0;
+                for (int i = 0; i < Powerups.Count; i++)
+                {
+                    Powerups[i].speed = 0;
+                }
+                ScorePerSecond = 0;
+            } 
+            else if (pause == false) 
+            {
+                Planes[0].speed = 0.1F;
+                Meteor_x = save_Meteor_x;
+                Meteor_y = save_Meteor_y;
+                for (int i = 0; i < Powerups.Count; i++)
+                {
+                    Powerups[i].speed = 3;
+                }
+                ScorePerSecond = 0.05f;
+            }
+        }
 
 
 
